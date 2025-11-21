@@ -1,25 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
-import { createRide, getRidesByCustomer } from '../services/rideService';
+import * as rideService from '../services/rideService';
 
-export const createRideHandler = async (req: Request, res: Response, next: NextFunction) => {
+export const createRide = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const ride = await createRide(req.body);
-    return res.status(201).json(ride);
+    const ride = await rideService.createRide(req.body);
+    res.status(201).json(ride);
   } catch (err) {
     next(err);
   }
 };
 
-export const getCustomerRidesHandler = async (req: Request, res: Response, next: NextFunction) => {
+export const getCustomerRides = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { customerId } = req.params;
-
-    if (!customerId) {
-      return res.status(400).json({ error: 'customerId is required' });
-    }
-
-    const rides = await getRidesByCustomer(customerId);
-    return res.json(rides);
+    const rides = await rideService.getRidesByCustomer(customerId);
+    res.status(200).json(rides);
   } catch (err) {
     next(err);
   }
