@@ -1,19 +1,13 @@
 import prisma from '../utils/prisma';
 
-interface LocationInput {
-  lat: number;
-  lng: number;
-  address: string;
-}
-
-export interface RideInput {
+interface RideInput {
   customerId: string;
-  transportMode: string; // 'CAR' | 'MOTO' | etc.
-  pickup: LocationInput;
-  dropoff: LocationInput;
+  transportMode: string;
+  requireLicensedDriver?: boolean;
+  pickup: { lat: number; lng: number; address: string };
+  dropoff: { lat: number; lng: number; address: string };
 }
 
-// Transforme un enregistrement Prisma en objet pour le frontend
 const formatRide = (ride: any) => {
   return {
     id: ride.id,
@@ -22,31 +16,29 @@ const formatRide = (ride: any) => {
     estimatedFare: ride.estimatedFare,
     status: ride.status,
     pickup: {
+      address: ride.pickupAddress,
       lat: ride.pickupLat,
       lng: ride.pickupLng,
-      address: ride.pickupAddress,
     },
     dropoff: {
+      address: ride.dropoffAddress,
       lat: ride.dropoffLat,
       lng: ride.dropoffLng,
-      address: ride.dropoffAddress,
     },
-    createdAt: ride.createdAt,
-    updatedAt: ride.updatedAt,
+    createdAt: ride.createdAt.toISOString(),
   };
 };
 
 export const createRide = async (data: RideInput) => {
-  // ⚠️ Calcul provisoire du prix : à remplacer plus tard par un vrai calcul de distance
   const fakeDistance = Math.abs(data.pickup.lat - data.dropoff.lat) * 10000;
-  const estimatedFare = Math.round(500 + fakeDistance * 100); // ex : en CFA
+  const estimatedFare = Math.floor(500 + fakeDistance * 100);
 
-  const ride = await prisma.ride.create({
+  const newRide = await prisma.ride.create({
     data: {
       customerId: data.customerId,
       transportMode: data.transportMode,
-      status: 'REQUESTED',
       estimatedFare,
+      status: 'SEARCHING',
       pickupLat: data.pickup.lat,
       pickupLng: data.pickup.lng,
       pickupAddress: data.pickup.address,
@@ -56,7 +48,7 @@ export const createRide = async (data: RideInput) => {
     },
   });
 
-  return formatRide(ride);
+  return formatRide(newRide);
 };
 
 export const getRidesByCustomer = async (customerId: string) => {
