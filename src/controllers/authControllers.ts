@@ -1,37 +1,44 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../utils/prisma';
 
-export const register = async (req: Request, res: Response, next: NextFunction) => {
+// Inscription / création ou mise à jour d'un utilisateur
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const { phone, name } = req.body;
+    const { phone, role } = req.body;
 
-    if (!phone) {
-      return res.status(400).json({ error: 'Phone is required' });
+    if (!phone || !role) {
+      res.status(400).json({ error: 'Phone and role are required' });
+      return;
     }
-
-    const safeName = typeof name === 'string' ? name : '';
 
     const user = await prisma.user.upsert({
       where: { phone },
-      update: { name: safeName },
-      create: {
-        phone,
-        name: safeName,
-      },
+      update: { role },
+      create: { phone, role },
     });
 
-    return res.json(user);
+    res.status(200).json(user);
   } catch (err) {
     next(err);
   }
 };
 
-export const login = async (req: Request, res: Response, next: NextFunction) => {
+// Connexion
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { phone } = req.body;
 
     if (!phone) {
-      return res.status(400).json({ error: 'Phone is required' });
+      res.status(400).json({ error: 'Phone is required' });
+      return;
     }
 
     const user = await prisma.user.findUnique({
@@ -39,10 +46,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
+      return;
     }
 
-    return res.json(user);
+    res.status(200).json(user);
   } catch (err) {
     next(err);
   }
