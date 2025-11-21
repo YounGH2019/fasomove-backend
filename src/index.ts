@@ -38,4 +38,8 @@ app.listen(PORT, HOST, () => {
   console.log(`✅ FasoMove backend démarré sur http://${HOST}:${PORT}`);
 });
 
+app.get('/', (req, res) => {
+  res.send('FasoMove backend is running. Try /api/health for JSON status.');
+});
+
 export default app;
