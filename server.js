@@ -1,16 +1,16 @@
 // FasoMove - Backend JS minimal pour Render
 
-import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import { v4 as uuid } from "uuid";
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const { v4: uuid } = require("uuid");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
 // ------------------
-// BASE DE DONNÉES EN MÉMOIRE (pour tests)
+// BASE EN MÉMOIRE (tests)
 // ------------------
 let users = [];
 let rides = [];
