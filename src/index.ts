@@ -1,47 +1,136 @@
-import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-
-import authRoutes from './routes/authRoutes';
-import rideRoutes from './routes/rideRoutes';
-
-dotenv.config();
+import express from "express";
+import cors from "cors";
+import { v4 as uuid } from "uuid";
 
 const app = express();
-
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Simple root route (debug)
-app.get('/', (req: Request, res: Response) => {
-  res.send('FasoMove backend is running 🚀');
+// ------------------
+// TYPES
+// ------------------
+interface User {
+  id: string;
+  phone: string;
+  role: string;
+  createdAt: string;
+}
+
+interface Ride {
+  id: string;
+  customerId: string;
+  transportMode: string;
+  requireLicensedDriver: boolean;
+  pickup: any;
+  dropoff: any;
+  status: string;
+  estimatedFare: number;
+  currency: string;
+  createdAt: string;
+}
+
+// ------------------
+// BASE EN MÉMOIRE (pour tests)
+// ------------------
+let users: User[] = [];
+let rides: Ride[] = [];
+
+// ---- INSCRIPTION ----
+app.post("/api/register", (req, res) => {
+  const { phone, role } = req.body as { phone?: string; role?: string };
+
+  if (!phone) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Numéro de téléphone requis" });
+  }
+
+  const existing = users.find((u) => u.phone === phone);
+  if (existing) {
+    return res.status(409).json({
+      success: false,
+      error: "Cet utilisateur existe déjà",
+    });
+  }
+
+  const user: User = {
+    id: uuid(),
+    phone,
+    role: role || "CUSTOMER",
+    createdAt: new Date().toISOString(),
+  };
+
+  users.push(user);
+  return res.json({ success: true, user });
 });
 
-// Healthcheck pour tests (PC + téléphone)
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
-    service: 'fasomove-backend',
-    env: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString(),
-  });
+// ---- LOGIN ----
+app.post("/api/login", (req, res) => {
+  const { phone } = req.body as { phone?: string };
+
+  if (!phone) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Numéro de téléphone requis" });
+  }
+
+  const user = users.find((u) => u.phone === phone);
+  if (!user) {
+    return res
+      .status(404)
+      .json({ success: false, error: "Utilisateur introuvable" });
+  }
+
+  return res.json({ success: true, user });
 });
 
-// Routes API
-app.use('/api/auth', authRoutes);
-app.use('/api/rides', rideRoutes);
+// ---- CRÉER UNE COURSE ----
+app.post("/api/rides", (req, res) => {
+  const {
+    customerId,
+    transportMode,
+    requireLicensedDriver,
+    pickup,
+    dropoff,
+  } = req.body as {
+    customerId: string;
+    transportMode: string;
+    requireLicensedDriver: boolean;
+    pickup: any;
+    dropoff: any;
+  };
 
-// Gestion d’erreurs simple (au cas où)
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+  const ride: Ride = {
+    id: uuid(),
+    customerId,
+    transportMode,
+    requireLicensedDriver,
+    pickup,
+    dropoff,
+    status: "REQUESTED",
+    estimatedFare: transportMode === "MOTO" ? 500 : 1500,
+    currency: "XOF",
+    createdAt: new Date().toISOString(),
+  };
+
+  rides.push(ride);
+  return res.json({ success: true, ride });
 });
 
-const PORT = process.env.PORT || 4000;
+// ---- LISTE DES COURSES ----
+app.get("/api/rides/:customerId", (req, res) => {
+  const { customerId } = req.params;
+  const rideList = rides.filter((r) => r.customerId === customerId);
+  return res.json({ success: true, rides: rideList });
+});
 
+// ---- ROUTE DE DEBUG ----
+app.get("/whoami", (req, res) => {
+  res.send("FasoMove backend – version TypeScript avec /api/register");
+});
+
+// ---- START SERVER ----
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`FasoMove backend listening on port ${PORT}`);
+  console.log(`FasoMove backend running on http://localhost:${PORT}`);
 });
-
-export default app;
