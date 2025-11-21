@@ -16,12 +16,12 @@ const PORT = process.env.PORT || 3100;
 app.use(cors());
 app.use(express.json());
 
-// Route racine (simple texte, juste pour vérifier rapidement)
+// ✅ Route racine simple
 app.get('/', (req, res) => {
   res.send('FasoMove backend is running ✅');
 });
 
-// ✅ Route de santé utilisée par le frontend (testBackend)
+// ✅ Route de santé appelée par le frontend (bouton "Tester le serveur")
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -30,14 +30,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Routes métier
+// 🔐 Routes métier
 app.use('/api/auth', authRoutes);
 app.use('/api/rides', rideRoutes);
 
-// Middleware global d’erreurs
+// 🧯 Middleware global d’erreurs
 app.use(errorHandler);
 
-// Écoute sur toutes les interfaces pour autoriser les tests depuis le réseau local
+// 🚀 Démarrage du serveur (écoute sur toutes les interfaces)
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`FasoMove backend listening on port ${PORT}`);
 });
