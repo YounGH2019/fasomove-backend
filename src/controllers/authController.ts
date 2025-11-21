@@ -14,11 +14,13 @@ export const register = async (
       return;
     }
 
-    const user = await prisma.user.upsert({
+        const user = await prisma.user.upsert({
       where: { phone },
-      update: { role },
-      create: { phone, role },
+      // On caste en any pour contourner le typage Prisma qui ne connait pas encore `role`
+      update: { role } as any,
+      create: { phone, role } as any,
     });
+
 
     res.json(user);
   } catch (err) {
