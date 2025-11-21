@@ -16,16 +16,17 @@ model User {
 }
 
 model Ride {
-  id             String   @id @default(uuid())
-  customerId     String
-  customer       User     @relation(fields: [customerId], references: [id])
-  transportMode  String
-  status         String   @default("REQUESTED")
-  estimatedFare  Float
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    User     @relation(fields: [customerId], references: [id])
 
-  pickupLat      Float
-  pickupLng      Float
-  pickupAddress  String
+  transportMode String
+  status        String   @default("REQUESTED")
+  estimatedFare Float
+
+  pickupLat     Float
+  pickupLng     Float
+  pickupAddress String
 
   dropoffLat     Float
   dropoffLng     Float
@@ -33,4 +34,11 @@ model Ride {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Driver {
+  id      String @id @default(uuid())
+  name    String
+  phone   String @unique
+  license String
 }
