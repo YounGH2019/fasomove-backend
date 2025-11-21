@@ -1,33 +1,46 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
+import authRoutes from './routes/authRoutes';
+import rideRoutes from './routes/rideRoutes';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4000;
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// TRACE pour vérifier qu'on est dans le bon fichier
-console.log('=== FasoMove backend index.ts chargé ===');
-
-// Health check simple
-app.get('/', (req, res) => {
-  res.send('FasoMove backend is running ✅ (route /)');
+// Simple root route (debug)
+app.get('/', (req: Request, res: Response) => {
+  res.send('FasoMove backend is running 🚀');
 });
 
-app.get('/api/health', (req, res) => {
+// Healthcheck pour tests (PC + téléphone)
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
-    message: 'Health OK depuis index.ts',
-    time: new Date().toISOString(),
+    service: 'fasomove-backend',
+    env: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
   });
 });
 
-// (on rajoutera authRoutes et rideRoutes après, là on isole juste le problème)
-app.listen(PORT, '0.0.0.0', () => {
+// Routes API
+app.use('/api/auth', authRoutes);
+app.use('/api/rides', rideRoutes);
+
+// Gestion d’erreurs simple (au cas où)
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+const PORT = process.env.PORT || 4000;
+
+app.listen(PORT, () => {
   console.log(`FasoMove backend listening on port ${PORT}`);
 });
 
