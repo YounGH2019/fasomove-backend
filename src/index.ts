@@ -1,33 +1,41 @@
-import express from 'express';
+import 'dotenv/config';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 
 import authRoutes from './routes/authRoutes';
 import rideRoutes from './routes/rideRoutes';
-import { errorHandler } from './middleware/errorHandler';
-
-dotenv.config();
+import errorHandler from './middleware/errorHandler';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// --------- Middlewares de base ----------
+app.use(cors({
+  origin: process.env.CORS_ORIGIN?.split(',') ?? '*',
+}));
 app.use(express.json());
 
-// Petit endpoint de santé utilisé par le frontend
-app.get('/api/status', (req, res) => {
-  res.json({ status: 'ok', message: 'FasoMove backend is running' });
+// --------- Healthcheck / ping ----------
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
+    service: 'fasomove-backend',
+    env: process.env.NODE_ENV || 'development',
+  });
 });
 
-// Auth (register / login)
+// --------- Routes métiers ----------
 app.use('/api/auth', authRoutes);
-
-// Rides (créer une course, lister les courses d’un client)
 app.use('/api/rides', rideRoutes);
 
-// Middleware global d’erreurs (toujours en dernier)
+// --------- Gestion d’erreurs globale ----------
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`FasoMove backend listening on port ${PORT}`);
+// --------- Démarrage du serveur ----------
+const PORT = Number(process.env.PORT) || 3100;
+const HOST = process.env.HOST || '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`✅ FasoMove backend démarré sur http://${HOST}:${PORT}`);
 });
+
+export default app;
