@@ -21,8 +21,14 @@ export const getCustomerRides = async (
 ): Promise<void> => {
   try {
     const { customerId } = req.params;
+
+    if (!customerId) {
+      res.status(400).json({ error: 'customerId is required' });
+      return;
+    }
+
     const rides = await rideService.getRidesByCustomer(customerId);
-    res.status(200).json(rides);
+    res.json(rides);
   } catch (err) {
     next(err);
   }
