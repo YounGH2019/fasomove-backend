@@ -104,7 +104,7 @@ app.get("/api/rides/:customerId", (req, res) => {
 });
 
 // ---- START SERVER ----
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3100;
 app.listen(PORT, () => {
   console.log(`FasoMove backend JS running on port ${PORT}`);
 });
