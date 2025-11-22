@@ -10,8 +10,9 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   phone     String   @unique
-  role      String   // 'CUSTOMER' | 'DRIVER'
+  role      String
   createdAt DateTime @default(now())
+
   rides     Ride[]
 }
 
@@ -20,21 +21,22 @@ model Ride {
   customerId  String
   customer    User     @relation(fields: [customerId], references: [id])
 
-  transportMode String
-  status        String   @default("REQUESTED")
-  estimatedFare Float
+  transportMode  String
+  status         String   @default("REQUESTED")
+  estimatedFare  Float
 
-  pickupLat     Float
-  pickupLng     Float
-  pickupAddress String
+  pickupLat      Float
+  pickupLng      Float
+  pickupAddress  String
 
   dropoffLat     Float
   dropoffLng     Float
   dropoffAddress String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
+
 
 model Driver {
   id      String @id @default(uuid())
